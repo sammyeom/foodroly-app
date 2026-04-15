@@ -1,6 +1,7 @@
+import { WEATHER_API_KEY as ENV_WEATHER_API_KEY } from '@env';
 import type { CategoryName } from '../data/menus';
 
-export const WEATHER_API_KEY = '';
+export const WEATHER_API_KEY = ENV_WEATHER_API_KEY ?? '';
 
 // 서울 기본 좌표 (위치 권한 미사용 시 폴백)
 const FALLBACK_LAT = 37.5665;
