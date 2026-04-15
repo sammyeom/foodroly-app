@@ -10,6 +10,7 @@ yarn-error.log*
 .env
 .env.local
 .env.*.local
+src/config/env.ts
 ios/Pods/
 ios/build/
 android/build/
@@ -19,3 +20,5 @@ android/.gradle/
 .vscode/
 *.iml
 *.tsbuildinfo
+.granite/
+*.ait
