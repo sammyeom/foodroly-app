@@ -15,4 +15,4 @@ title: foodroly (뭐먹지)
 
 서비스 관련 문의는 아래 이메일로 부탁드립니다.
 
-- 이메일: `CONTACT_EMAIL@example.com`
+- 이메일: `sammyeom@gmail.com`

@@ -66,7 +66,7 @@ title: 서비스 이용약관
 
 서비스 이용과 관련한 문의, 불만, 신고 등은 아래 연락처로 접수할 수 있습니다.
 
-- 이메일: `CONTACT_EMAIL@example.com`
+- 이메일: `sammyeom@gmail.com`
 
 ---
 
