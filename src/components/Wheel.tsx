@@ -34,30 +34,28 @@ export default function Wheel({ size, menus }: WheelProps) {
 
   return (
     <View style={[styles.wheel, { width: size, height: size, borderRadius: radius }]}>
-      {/* 방사 라인 */}
-      {Array.from({ length: n }).map((_, i) => {
-        const deg = (360 / n) * i;
-        return (
-          <View
-            key={`line-${i}`}
-            pointerEvents="none"
-            style={[
-              styles.line,
-              {
-                width: 2,
-                height: radius,
-                left: radius - 1,
-                top: 0,
-                transform: [
-                  { translateY: radius },
-                  { rotate: `${deg}deg` },
-                  { translateY: -radius / 2 },
-                ],
-              },
-            ]}
-          />
-        );
-      })}
+      {/* 방사 라인 — 칩과 칩 사이에 위치하도록 step/2 오프셋 */}
+      {n > 1 &&
+        Array.from({ length: n }).map((_, i) => {
+          const deg = (360 / n) * i + (360 / n) / 2;
+          return (
+            <View
+              key={`line-${i}`}
+              pointerEvents="none"
+              style={[
+                styles.line,
+                {
+                  width: 2,
+                  height: radius,
+                  left: radius - 1,
+                  top: 0,
+                  transformOrigin: 'center bottom',
+                  transform: [{ rotate: `${deg}deg` }],
+                },
+              ]}
+            />
+          );
+        })}
 
       {/* 메뉴 칩 */}
       {items.map((it, i) => (

@@ -103,12 +103,17 @@ export default function HomeScreen({
             <Text style={styles.adBannerText}>광고 영역</Text>
           </View>
 
-          <View style={styles.weatherBanner}>
+          <TouchableOpacity
+            activeOpacity={0.75}
+            disabled={isSpinning}
+            onPress={() => onCategoryChange(banner.category)}
+            style={styles.weatherBanner}
+          >
             <Text style={styles.weatherEmoji}>{banner.emoji}</Text>
             <Text style={styles.weatherText} numberOfLines={1}>
               {banner.text}
             </Text>
-          </View>
+          </TouchableOpacity>
 
           <Text style={styles.spinCounter}>
             오늘 돌린 횟수 <Text style={styles.spinCounterNum}>{spinCount}</Text>번
@@ -197,8 +202,9 @@ const styles = StyleSheet.create({
   weatherBanner: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
-    alignSelf: 'flex-start',
+    alignSelf: 'center',
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 9999,
