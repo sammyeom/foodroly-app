@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Animated,
   Easing,
+  Alert,
   useWindowDimensions,
 } from 'react-native';
 import { generateHapticFeedback } from '@apps-in-toss/framework';
@@ -19,6 +20,8 @@ import {
   type Menu,
 } from '../data/menus';
 import type { WeatherRecommendation } from '../utils/weather';
+import { FREE_SPINS_PER_DAY } from '../config/env';
+import { showRewardedAd } from '../utils/ads';
 
 interface HomeScreenProps {
   category: CategoryName;
@@ -26,6 +29,8 @@ interface HomeScreenProps {
   banner: WeatherRecommendation;
   spinCount: number;
   onSpinCountChange: (updater: (prev: number) => number) => void;
+  adsWatchedToday: number;
+  onAdWatched: () => void;
   onResult: (menu: Menu) => void;
 }
 
@@ -35,6 +40,8 @@ export default function HomeScreen({
   banner,
   spinCount,
   onSpinCountChange,
+  adsWatchedToday,
+  onAdWatched,
   onResult,
 }: HomeScreenProps) {
   const { width } = useWindowDimensions();
@@ -42,14 +49,19 @@ export default function HomeScreen({
   const wheelSize = Math.min(cardMaxWidth - 36, 320);
 
   const [isSpinning, setIsSpinning] = React.useState<boolean>(false);
+  const [isLoadingAd, setIsLoadingAd] = React.useState<boolean>(false);
 
   const rotation = useRef(new Animated.Value(0)).current;
   const totalRotation = useRef(0);
 
   const menus = useMemo(() => getMenusByCategory(category), [category]);
 
-  const handleSpin = useCallback(() => {
-    if (isSpinning || menus.length === 0) return;
+  const quota = FREE_SPINS_PER_DAY + adsWatchedToday;
+  const spinsLeft = Math.max(0, quota - spinCount);
+  const needsAd = spinCount >= quota;
+
+  const runSpin = useCallback(() => {
+    if (menus.length === 0) return;
     setIsSpinning(true);
 
     const n = menus.length;
@@ -79,7 +91,43 @@ export default function HomeScreen({
         setTimeout(() => onResult(picked), 350);
       }
     });
-  }, [isSpinning, menus, onResult, onSpinCountChange, rotation]);
+  }, [menus, onResult, onSpinCountChange, rotation]);
+
+  const handleSpin = useCallback(() => {
+    if (isSpinning || isLoadingAd || menus.length === 0) return;
+
+    if (!needsAd) {
+      runSpin();
+      return;
+    }
+
+    Alert.alert(
+      '오늘의 무료 스핀을 모두 썼어요',
+      '광고를 보고 1번 더 돌려볼까요?',
+      [
+        { text: '다음에', style: 'cancel' },
+        {
+          text: '광고 보고 1회 추가',
+          onPress: async () => {
+            setIsLoadingAd(true);
+            try {
+              const { rewarded } = await showRewardedAd();
+              if (!rewarded) {
+                Alert.alert('광고 시청이 완료되지 않았어요', '잠시 후 다시 시도해주세요.');
+                return;
+              }
+              onAdWatched();
+              runSpin();
+            } catch {
+              Alert.alert('광고를 불러오지 못했어요', '잠시 후 다시 시도해주세요.');
+            } finally {
+              setIsLoadingAd(false);
+            }
+          },
+        },
+      ],
+    );
+  }, [isSpinning, isLoadingAd, menus.length, needsAd, runSpin, onAdWatched]);
 
   const rotateStyle = {
     transform: [
@@ -117,6 +165,14 @@ export default function HomeScreen({
 
           <Text style={styles.spinCounter}>
             오늘 돌린 횟수 <Text style={styles.spinCounterNum}>{spinCount}</Text>번
+            {'  ·  '}
+            {needsAd ? (
+              <Text style={styles.spinCounterAd}>광고 보고 1회 추가</Text>
+            ) : (
+              <Text>
+                남은 무료 스핀 <Text style={styles.spinCounterNum}>{spinsLeft}</Text>회
+              </Text>
+            )}
           </Text>
 
           <ScrollView
@@ -153,12 +209,18 @@ export default function HomeScreen({
 
           <TouchableOpacity
             activeOpacity={0.85}
-            style={[styles.btnPrimary, isSpinning && styles.btnDisabled]}
+            style={[styles.btnPrimary, (isSpinning || isLoadingAd) && styles.btnDisabled]}
             onPress={handleSpin}
-            disabled={isSpinning}
+            disabled={isSpinning || isLoadingAd}
           >
             <Text style={styles.btnPrimaryText}>
-              {isSpinning ? '두근두근...' : '🍽️ 뭐먹지?'}
+              {isSpinning
+                ? '두근두근...'
+                : isLoadingAd
+                ? '광고 불러오는 중...'
+                : needsAd
+                ? '📺 광고 보고 1번 더 돌리기'
+                : '🍽️ 뭐먹지?'}
             </Text>
           </TouchableOpacity>
 
@@ -222,6 +284,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   spinCounterNum: { color: theme.primary, fontWeight: '900' },
+  spinCounterAd: { color: theme.primary, fontWeight: '800' },
 
   pills: { gap: 8, paddingVertical: 2, paddingRight: 4 },
   pill: {
