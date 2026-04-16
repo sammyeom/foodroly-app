@@ -10,7 +10,6 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { generateHapticFeedback } from '@apps-in-toss/framework';
-import NavigationBar from '../components/NavigationBar';
 import Wheel from '../components/Wheel';
 import { theme } from '../theme';
 import {
@@ -95,8 +94,6 @@ export default function HomeScreen({
 
   return (
     <View style={styles.container}>
-      <NavigationBar title="🍽️  뭐먹지?" subtitle="오늘 뭐 먹을지 모르겠을 때" />
-
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}

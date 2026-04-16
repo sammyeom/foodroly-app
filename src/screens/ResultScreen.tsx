@@ -12,7 +12,7 @@ import {
   getTossShareLink,
   share,
 } from '@apps-in-toss/framework';
-import NavigationBar from '../components/NavigationBar';
+import { useBackEvent } from '@granite-js/react-native';
 import { theme } from '../theme';
 import type { ResultParams } from '../App';
 
@@ -24,6 +24,15 @@ interface ResultScreenProps {
 
 export default function ResultScreen({ params, onRetry, onBack }: ResultScreenProps) {
   const { result } = params;
+
+  const backEvent = useBackEvent();
+  useEffect(() => {
+    const handler = () => onBack();
+    backEvent.addEventListener(handler);
+    return () => {
+      backEvent.removeEventListener(handler);
+    };
+  }, [backEvent, onBack]);
 
   const scaleAnim = useRef(new Animated.Value(0.3)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
@@ -122,8 +131,6 @@ export default function ResultScreen({ params, onRetry, onBack }: ResultScreenPr
 
   return (
     <View style={styles.container}>
-      <NavigationBar title="오늘은 이거!" onBack={onBack} />
-
       <View style={styles.body}>
         <Animated.Text
           style={[styles.emojiDecor, { transform: [{ scale: emojiScale }] }]}
