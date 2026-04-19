@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,10 +7,10 @@ import {
   StyleSheet,
   Animated,
   Easing,
-  Alert,
   useWindowDimensions,
 } from 'react-native';
 import { generateHapticFeedback } from '@apps-in-toss/framework';
+import { useDialog } from '@toss/tds-react-native';
 import Wheel from '../components/Wheel';
 import { theme } from '../theme';
 import {
@@ -20,8 +20,9 @@ import {
   type Menu,
 } from '../data/menus';
 import type { WeatherRecommendation } from '../utils/weather';
-import { FREE_SPINS_PER_DAY } from '../config/env';
-import { showRewardedAd } from '../utils/ads';
+import { FREE_SPINS_PER_DAY, BANNER_AD_GROUP_ID } from '../config/env';
+import { showRewardedAd, preloadRewardedAd } from '../utils/ads';
+import { InlineAd } from '@apps-in-toss/framework';
 
 interface HomeScreenProps {
   category: CategoryName;
@@ -48,8 +49,14 @@ export default function HomeScreen({
   const cardMaxWidth = Math.min(width - 32, 380);
   const wheelSize = Math.min(cardMaxWidth - 36, 320);
 
+  const dialog = useDialog();
+
   const [isSpinning, setIsSpinning] = React.useState<boolean>(false);
   const [isLoadingAd, setIsLoadingAd] = React.useState<boolean>(false);
+
+  useEffect(() => {
+    preloadRewardedAd();
+  }, []);
 
   const rotation = useRef(new Animated.Value(0)).current;
   const totalRotation = useRef(0);
@@ -93,7 +100,7 @@ export default function HomeScreen({
     });
   }, [menus, onResult, onSpinCountChange, rotation]);
 
-  const handleSpin = useCallback(() => {
+  const handleSpin = useCallback(async () => {
     if (isSpinning || isLoadingAd || menus.length === 0) return;
 
     if (!needsAd) {
@@ -101,33 +108,36 @@ export default function HomeScreen({
       return;
     }
 
-    Alert.alert(
-      '오늘의 무료 스핀을 모두 썼어요',
-      '광고를 보고 1번 더 돌려볼까요?',
-      [
-        { text: '다음에', style: 'cancel' },
-        {
-          text: '광고 보고 1회 추가',
-          onPress: async () => {
-            setIsLoadingAd(true);
-            try {
-              const { rewarded } = await showRewardedAd();
-              if (!rewarded) {
-                Alert.alert('광고 시청이 완료되지 않았어요', '잠시 후 다시 시도해주세요.');
-                return;
-              }
-              onAdWatched();
-              runSpin();
-            } catch {
-              Alert.alert('광고를 불러오지 못했어요', '잠시 후 다시 시도해주세요.');
-            } finally {
-              setIsLoadingAd(false);
-            }
-          },
-        },
-      ],
-    );
-  }, [isSpinning, isLoadingAd, menus.length, needsAd, runSpin, onAdWatched]);
+    const confirmed = await dialog.openConfirm({
+      title: '오늘의 무료 스핀을 모두 썼어요',
+      description: '광고를 보고 1번 더 돌려볼까요?',
+      leftButton: '다음에',
+      rightButton: '광고 보고 1회 추가',
+    });
+
+    if (!confirmed) return;
+
+    setIsLoadingAd(true);
+    try {
+      const { rewarded } = await showRewardedAd();
+      if (!rewarded) {
+        await dialog.openAlert({
+          title: '광고 시청이 완료되지 않았어요',
+          description: '잠시 후 다시 시도해주세요.',
+        });
+        return;
+      }
+      onAdWatched();
+      runSpin();
+    } catch {
+      await dialog.openAlert({
+        title: '광고를 불러오지 못했어요',
+        description: '잠시 후 다시 시도해주세요.',
+      });
+    } finally {
+      setIsLoadingAd(false);
+    }
+  }, [isSpinning, isLoadingAd, menus.length, needsAd, runSpin, onAdWatched, dialog]);
 
   const rotateStyle = {
     transform: [
@@ -147,10 +157,6 @@ export default function HomeScreen({
         showsVerticalScrollIndicator={false}
       >
         <View style={[styles.card, { maxWidth: cardMaxWidth }]}>
-          <View style={styles.adBanner}>
-            <Text style={styles.adBannerText}>광고 영역</Text>
-          </View>
-
           <TouchableOpacity
             activeOpacity={0.75}
             disabled={isSpinning}
@@ -224,9 +230,15 @@ export default function HomeScreen({
             </Text>
           </TouchableOpacity>
 
-          <View style={[styles.adBanner, { marginTop: 16, marginBottom: 0 }]}>
-            <Text style={styles.adBannerText}>광고 영역</Text>
-          </View>
+          {BANNER_AD_GROUP_ID ? (
+            <View style={styles.inlineAdWrap}>
+              <InlineAd adGroupId={BANNER_AD_GROUP_ID} theme="light" variant="card" />
+            </View>
+          ) : (
+            <View style={[styles.adBanner, { marginTop: 16, marginBottom: 0 }]}>
+              <Text style={styles.adBannerText}>광고 영역</Text>
+            </View>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -260,6 +272,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   adBannerText: { color: theme.textSub, fontSize: 12, fontWeight: '500' },
+  inlineAdWrap: { marginTop: 16, borderRadius: 16, overflow: 'hidden' },
 
   weatherBanner: {
     flexDirection: 'row',

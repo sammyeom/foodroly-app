@@ -3,6 +3,7 @@ import {
   View,
   Text,
   TouchableOpacity,
+  ScrollView,
   StyleSheet,
   Animated,
   Easing,
@@ -11,10 +12,12 @@ import {
   generateHapticFeedback,
   getTossShareLink,
   share,
+  InlineAd,
 } from '@apps-in-toss/framework';
 import { useBackEvent } from '@granite-js/react-native';
 import { theme } from '../theme';
 import type { ResultParams } from '../App';
+import { BANNER_AD_GROUP_ID } from '../config/env';
 
 interface ResultScreenProps {
   params: ResultParams;
@@ -131,49 +134,60 @@ export default function ResultScreen({ params, onRetry, onBack }: ResultScreenPr
 
   return (
     <View style={styles.container}>
-      <View style={styles.body}>
-        <Animated.Text
-          style={[styles.emojiDecor, { transform: [{ scale: emojiScale }] }]}
-        >
-          🍽️
-        </Animated.Text>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.body}>
+          <Animated.Text
+            style={[styles.emojiDecor, { transform: [{ scale: emojiScale }] }]}
+          >
+            🍽️
+          </Animated.Text>
 
-        <Animated.View
-          style={[
-            styles.resultCard,
-            { transform: [{ scale: scaleAnim }], opacity: opacityAnim },
-          ]}
-        >
-          <Text style={styles.resultEmoji}>{result.emoji}</Text>
-          <Text style={styles.resultLabel}>오늘의 메뉴</Text>
-          <Text style={styles.resultText} numberOfLines={2} adjustsFontSizeToFit>
-            {result.name}
-          </Text>
-          <Text style={styles.resultDesc}>{result.desc}</Text>
-        </Animated.View>
-      </View>
-
-      <View style={styles.buttonArea}>
-        <TouchableOpacity style={styles.retryButton} onPress={onRetry} activeOpacity={0.85}>
-          <Text style={styles.retryButtonText}>🔄 다시 뽑기</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.shareButton, isSharing && styles.buttonDisabled]}
-          onPress={handleShare}
-          disabled={isSharing}
-        >
-          <Text style={styles.shareButtonText}>
-            {isSharing ? '공유 중...' : '🔗 결과 공유하기'}
-          </Text>
-        </TouchableOpacity>
-
-        <View style={styles.divider} />
-
-        <View style={styles.adBanner}>
-          <Text style={styles.adBannerText}>📢 광고 영역</Text>
+          <Animated.View
+            style={[
+              styles.resultCard,
+              { transform: [{ scale: scaleAnim }], opacity: opacityAnim },
+            ]}
+          >
+            <Text style={styles.resultEmoji}>{result.emoji}</Text>
+            <Text style={styles.resultLabel}>오늘의 메뉴</Text>
+            <Text style={styles.resultText} numberOfLines={2} adjustsFontSizeToFit>
+              {result.name}
+            </Text>
+            <Text style={styles.resultDesc}>{result.desc}</Text>
+          </Animated.View>
         </View>
-      </View>
+
+        <View style={styles.buttonArea}>
+          <TouchableOpacity style={styles.retryButton} onPress={onRetry} activeOpacity={0.85}>
+            <Text style={styles.retryButtonText}>🔄 다시 뽑기</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.shareButton, isSharing && styles.buttonDisabled]}
+            onPress={handleShare}
+            disabled={isSharing}
+          >
+            <Text style={styles.shareButtonText}>
+              {isSharing ? '공유 중...' : '🔗 결과 공유하기'}
+            </Text>
+          </TouchableOpacity>
+
+          <View style={styles.divider} />
+
+          {BANNER_AD_GROUP_ID ? (
+            <View style={styles.inlineAdWrap}>
+              <InlineAd adGroupId={BANNER_AD_GROUP_ID} theme="light" variant="card" />
+            </View>
+          ) : (
+            <View style={styles.adBanner}>
+              <Text style={styles.adBannerText}>📢 광고 영역</Text>
+            </View>
+          )}
+        </View>
+      </ScrollView>
 
       {toastMsg != null && (
         <Animated.View
@@ -189,6 +203,7 @@ export default function ResultScreen({ params, onRetry, onBack }: ResultScreenPr
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.bg },
+  scrollContent: { flexGrow: 1 },
   body: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
 
   emojiDecor: { fontSize: 48, marginBottom: 8 },
@@ -276,6 +291,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
   },
+  inlineAdWrap: { borderRadius: 12, overflow: 'hidden' },
 
   toast: {
     position: 'absolute',
