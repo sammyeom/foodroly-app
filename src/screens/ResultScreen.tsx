@@ -116,8 +116,11 @@ export default function ResultScreen({ params, onRetry, onBack }: ResultScreenPr
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const sharingRef = useRef(false);
+
   const handleShare = useCallback(async () => {
-    if (isSharing) return;
+    if (sharingRef.current) return;
+    sharingRef.current = true;
     setIsSharing(true);
     try {
       const shareLink = await getTossShareLink('intoss://foodroly');
@@ -127,9 +130,10 @@ export default function ResultScreen({ params, onRetry, onBack }: ResultScreenPr
     } catch {
       showToast('공유하는 중 오류가 발생했어요');
     } finally {
+      sharingRef.current = false;
       setIsSharing(false);
     }
-  }, [isSharing, result, showToast]);
+  }, [result, showToast]);
 
   const { addAccessoryButton } = useTopNavigation();
 
@@ -142,7 +146,8 @@ export default function ResultScreen({ params, onRetry, onBack }: ResultScreenPr
         void handleShare();
       },
     });
-  }, [addAccessoryButton, handleShare]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <View style={styles.container}>
