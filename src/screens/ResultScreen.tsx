@@ -119,7 +119,9 @@ export default function ResultScreen({ params, onRetry, onBack }: ResultScreenPr
     if (isSharing) return;
     setIsSharing(true);
     try {
-      const shareLink = await getTossShareLink('intoss://foodroly');
+      const shareLink = await getTossShareLink(
+        `intoss://foodroly?result=${encodeURIComponent(result.name)}`,
+      );
       await share({
         message: `오늘 뭐먹지? → ${result.emoji} ${result.name}!\n${shareLink}`,
       });
