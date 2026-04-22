@@ -6,12 +6,24 @@ export default defineConfig({
   appName: 'foodroly',
   plugins: [
     appsInToss({
+      appType: 'general',
       brand: {
         displayName: '뭐먹지',
         primaryColor: '#FF6B35',
-        icon: 'https://static.toss.im/icons/png/4x/icon-foodroly.png',
+        icon: 'https://static.toss.im/appsintoss/33673/e85afa6c-375c-4786-b639-e64610fedcd6.png',
       },
       permissions: [],
+      navigationBar: {
+        withBackButton: true,
+        withHomeButton: true,
+        initialAccessoryButton: {
+          id: 'share',
+          title: '공유',
+          icon: {
+            name: 'icon-share-dots-mono',
+          },
+        },
+      },
     }),
   ],
 });

@@ -13,6 +13,7 @@ import {
   getTossShareLink,
   share,
   InlineAd,
+  useTopNavigation,
 } from '@apps-in-toss/framework';
 import { useBackEvent } from '@granite-js/react-native';
 import { theme } from '../theme';
@@ -119,9 +120,7 @@ export default function ResultScreen({ params, onRetry, onBack }: ResultScreenPr
     if (isSharing) return;
     setIsSharing(true);
     try {
-      const shareLink = await getTossShareLink(
-        `intoss://foodroly?result=${encodeURIComponent(result.name)}`,
-      );
+      const shareLink = await getTossShareLink('intoss://foodroly');
       await share({
         message: `오늘 뭐먹지? → ${result.emoji} ${result.name}!\n${shareLink}`,
       });
@@ -131,6 +130,19 @@ export default function ResultScreen({ params, onRetry, onBack }: ResultScreenPr
       setIsSharing(false);
     }
   }, [isSharing, result, showToast]);
+
+  const { addAccessoryButton } = useTopNavigation();
+
+  useEffect(() => {
+    addAccessoryButton({
+      id: 'share',
+      title: '공유',
+      icon: { name: 'icon-share-dots-mono' },
+      onPress: () => {
+        void handleShare();
+      },
+    });
+  }, [addAccessoryButton, handleShare]);
 
   return (
     <View style={styles.container}>
