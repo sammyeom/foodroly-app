@@ -16,13 +16,6 @@ export default defineConfig({
       navigationBar: {
         withBackButton: true,
         withHomeButton: true,
-        initialAccessoryButton: {
-          id: 'share',
-          title: '공유',
-          icon: {
-            name: 'icon-share-dots-mono',
-          },
-        },
       },
     }),
   ],
