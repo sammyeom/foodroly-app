@@ -18,6 +18,7 @@ import { useBackEvent } from '@granite-js/react-native';
 import { theme } from '../theme';
 import type { ResultParams } from '../App';
 import { BANNER_AD_GROUP_ID } from '../config/env';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 interface ResultScreenProps {
   params: ResultParams;
@@ -178,14 +179,12 @@ export default function ResultScreen({ params, onRetry, onBack }: ResultScreenPr
           <View style={styles.divider} />
 
           {BANNER_AD_GROUP_ID ? (
-            <View style={styles.inlineAdWrap}>
-              <InlineAd adGroupId={BANNER_AD_GROUP_ID} theme="light" variant="card" />
-            </View>
-          ) : (
-            <View style={styles.adBanner}>
-              <Text style={styles.adBannerText}>📢 광고 영역</Text>
-            </View>
-          )}
+            <ErrorBoundary>
+              <View style={styles.inlineAdWrap}>
+                <InlineAd adGroupId={BANNER_AD_GROUP_ID} theme="light" variant="card" />
+              </View>
+            </ErrorBoundary>
+          ) : null}
         </View>
       </ScrollView>
 

@@ -23,6 +23,7 @@ import type { WeatherRecommendation } from '../utils/weather';
 import { FREE_SPINS_PER_DAY, BANNER_AD_GROUP_ID } from '../config/env';
 import { showRewardedAd, preloadRewardedAd } from '../utils/ads';
 import { InlineAd } from '@apps-in-toss/framework';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 interface HomeScreenProps {
   category: CategoryName;
@@ -231,14 +232,12 @@ export default function HomeScreen({
           </TouchableOpacity>
 
           {BANNER_AD_GROUP_ID ? (
-            <View style={styles.inlineAdWrap}>
-              <InlineAd adGroupId={BANNER_AD_GROUP_ID} theme="light" variant="card" />
-            </View>
-          ) : (
-            <View style={[styles.adBanner, { marginTop: 16, marginBottom: 0 }]}>
-              <Text style={styles.adBannerText}>광고 영역</Text>
-            </View>
-          )}
+            <ErrorBoundary>
+              <View style={styles.inlineAdWrap}>
+                <InlineAd adGroupId={BANNER_AD_GROUP_ID} theme="light" variant="card" />
+              </View>
+            </ErrorBoundary>
+          ) : null}
         </View>
       </ScrollView>
     </View>
