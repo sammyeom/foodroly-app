@@ -1,4 +1,5 @@
 import { appsInToss } from '@apps-in-toss/framework/plugins';
+import { router } from '@granite-js/plugin-router';
 import { defineConfig } from '@granite-js/react-native/config';
 
 export default defineConfig({
@@ -18,5 +19,6 @@ export default defineConfig({
         withHomeButton: true,
       },
     }),
+    router(),
   ],
 });
